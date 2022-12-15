@@ -22,8 +22,7 @@ public class ArchivoEntity extends GenericTable implements Serializable {
     private Integer idArchivo;
     @Column(name="EXTENCION_ARCHIVO")
     private String extencionArchivo;
-    @Column(name = "TIPO_ARCHIVO")
-    private String tipoArchivo;
+
     @Column(name="BUCKET")
     private String bucket;
     @Column(name="DESCRIPCION")
@@ -35,4 +34,8 @@ public class ArchivoEntity extends GenericTable implements Serializable {
     @ManyToOne
     @JoinColumn(name="ID_USUARIO")
     private UsuarioEntity usuario;
+    @ManyToOne
+    @JoinColumn(name = "ID_TIPO_ARCHIVO")
+    private TipoArchivoEntity idTipoArchivo;
+
 }

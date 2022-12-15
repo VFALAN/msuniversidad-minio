@@ -37,6 +37,7 @@ public class FileObjectServiceImpl implements IFileObjectService {
             ObjectWriteResponse response = this.minioClient.putObject(PutObjectArgs.builder()
                     .bucket(pBucket)
                     .object(file)
+
                     .stream(pInput, -1, 10485760)
                     .contentType(pContentType)
                     .build());

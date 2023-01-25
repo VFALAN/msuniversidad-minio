@@ -41,14 +41,13 @@ public class FileServerServiceImpl implements IFileServerService {
             String mBucketName = obtenerBucket(pIdBucket);
             TipoArchivoEntity mTipoArchivo = this.iTipoArchivoService.findById(pTipoArchivo);
             if (mBucketName != null) {
-                String mRutaStr = "";
-                mRutaStr += pUsario.getMatricula().concat("/");
-                mRutaStr += pUsario.getCurp().concat("/");
-                mRutaStr += mTipoArchivo.getClave().concat(".").concat(pExtencion);
+                ruta += mTipoArchivo.getClave().concat(".").concat(pExtencion);
 
-                String mRutaFinal = this.iFileObjectService.saveFile(file.getInputStream(), mBucketName, mRutaStr, pContentType);
+                String mRutaFinal = this.iFileObjectService.saveFile(file.getInputStream(), mBucketName, ruta, pContentType);
                 ArchivoEntity mArchivoEntity = ArchivoEntity.builder()
                         .usuario(pUsario)
+                        .idTipoArchivo(mTipoArchivo)
+                        .tipoArchivo(mTipoArchivo.getClave())
                         .bucket(mBucketName)
                         .extencionArchivo(pExtencion)
                         .nombreArchivo(file.getOriginalFilename())

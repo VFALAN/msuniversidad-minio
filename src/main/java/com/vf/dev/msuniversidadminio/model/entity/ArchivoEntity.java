@@ -20,20 +20,23 @@ public class ArchivoEntity extends GenericTable implements Serializable {
     @JsonProperty
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idArchivo;
-    @Column(name="EXTENCION_ARCHIVO")
+    @Column(name = "EXTENCION_ARCHIVO")
     private String extencionArchivo;
 
-    @Column(name="BUCKET")
+    @Column(name = "BUCKET")
     private String bucket;
-    @Column(name="DESCRIPCION")
+    @Column(name = "DESCRIPCION")
     private String descripcion;
-    @Column(name="NOMBRE_ARCHIVO")
+    @Column(name = "NOMBRE_ARCHIVO")
     private String nombreArchivo;
-    @Column(name="RUTA")
+    @Column(name = "RUTA")
     private String ruta;
+    @Column(name = "TIPO_ARCHIVO")
+    private String tipoArchivo;
     @ManyToOne
-    @JoinColumn(name="ID_USUARIO")
+    @JoinColumn(name = "ID_USUARIO")
     private UsuarioEntity usuario;
+
     @ManyToOne
     @JoinColumn(name = "ID_TIPO_ARCHIVO")
     private TipoArchivoEntity idTipoArchivo;

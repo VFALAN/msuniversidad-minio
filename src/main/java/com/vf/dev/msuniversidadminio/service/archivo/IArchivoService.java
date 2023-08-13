@@ -8,4 +8,6 @@ public interface IArchivoService {
     public ArchivoEntity findById(Integer pIdArchivo) throws MsUniversidadException;
     public ArchivoEntity save(ArchivoEntity pArchivoEntity);
 
+    public boolean disabled(Integer pIdArchivo) throws MsUniversidadException;
+
 }

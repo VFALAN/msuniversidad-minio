@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -28,5 +29,14 @@ public class ArchivoServiceImpl implements IArchivoService {
     @Override
     public ArchivoEntity save(ArchivoEntity pArchivoEntity) {
         return this.iArchivoRepository.save(pArchivoEntity);
+    }
+
+    @Override
+    public boolean disabled(Integer pIdArchivo) throws MsUniversidadException {
+        ArchivoEntity mArchivoEntity = this.findById(pIdArchivo);
+        mArchivoEntity.setIndActivo(false);
+        mArchivoEntity.setFechaBaja(new Date());
+        this.iArchivoRepository.save(mArchivoEntity);
+        return true;
     }
 }

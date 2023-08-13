@@ -33,6 +33,8 @@ public class ArchivoEntity extends GenericTable implements Serializable {
     private String ruta;
     @Column(name = "TIPO_ARCHIVO")
     private String tipoArchivo;
+    @Column(name="MINE_TYPE")
+    private String mineType;
     @ManyToOne
     @JoinColumn(name = "ID_USUARIO")
     private UsuarioEntity usuario;

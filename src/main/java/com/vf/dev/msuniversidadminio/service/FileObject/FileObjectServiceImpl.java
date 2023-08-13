@@ -1,13 +1,12 @@
 package com.vf.dev.msuniversidadminio.service.FileObject;
 
+import com.vf.dev.msuniversidadminio.model.entity.ArchivoEntity;
 import com.vf.dev.msuniversidadminio.service.archivo.IArchivoService;
 import com.vf.dev.msuniversidadminio.service.bucket.IBucketService;
 import com.vf.dev.msuniversidadminio.util.MsUniversidadException;
-import io.minio.BucketExistsArgs;
-import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import io.minio.errors.*;
+import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -67,5 +69,18 @@ public class FileObjectServiceImpl implements IFileObjectService {
             log.info(e.getMessage());
             throw new MsUniversidadException("Error en XML", "");
         }
+    }
+
+    @Override
+    public String getUrl(ArchivoEntity pArchivoEntity) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        Map<String, String> reqParams = new HashMap<>();
+        reqParams.put("response-content-type", pArchivoEntity.getMineType());
+        return this.minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                .bucket(pArchivoEntity.getBucket())
+                .method(Method.GET)
+                .object(pArchivoEntity.getRuta())
+                .expiry(30, TimeUnit.MINUTES)
+                .extraQueryParams(reqParams)
+                .build());
     }
 }

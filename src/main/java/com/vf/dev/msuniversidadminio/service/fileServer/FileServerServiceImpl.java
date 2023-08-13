@@ -3,6 +3,8 @@ package com.vf.dev.msuniversidadminio.service.fileServer;
 import com.vf.dev.msuniversidadminio.model.entity.ArchivoEntity;
 import com.vf.dev.msuniversidadminio.model.entity.TipoArchivoEntity;
 import com.vf.dev.msuniversidadminio.model.entity.UsuarioEntity;
+import com.vf.dev.msuniversidadminio.model.model.FileEvidenceDTO;
+import com.vf.dev.msuniversidadminio.repository.IArchivoRepository;
 import com.vf.dev.msuniversidadminio.service.FileObject.IFileObjectService;
 import com.vf.dev.msuniversidadminio.service.archivo.IArchivoService;
 import com.vf.dev.msuniversidadminio.service.tipoArchivo.ITipoArchivoService;
@@ -12,7 +14,6 @@ import io.minio.*;
 import io.minio.errors.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -34,9 +37,11 @@ public class FileServerServiceImpl implements IFileServerService {
     private ITipoArchivoService iTipoArchivoService;
     @Autowired
     private MinioClient minioClient;
+    @Autowired
+    private IArchivoRepository iArchivoRepository;
 
     @Override
-    public String saveFile(MultipartFile file, UsuarioEntity pUsario, Integer pTipoArchivo, Integer pIdBucket, String pExtencion, String pContentType , String ruta) throws MsUniversidadException {
+    public String saveFile(MultipartFile file, UsuarioEntity pUsario, Integer pTipoArchivo, Integer pIdBucket, String pExtencion, String pContentType, String ruta) throws MsUniversidadException {
         try {
             String mBucketName = obtenerBucket(pIdBucket);
             TipoArchivoEntity mTipoArchivo = this.iTipoArchivoService.findById(pTipoArchivo);
@@ -50,7 +55,8 @@ public class FileServerServiceImpl implements IFileServerService {
                         .tipoArchivo(mTipoArchivo.getClave())
                         .bucket(mBucketName)
                         .extencionArchivo(pExtencion)
-                        .nombreArchivo(file.getOriginalFilename())
+                        .mineType(pContentType)
+                        .nombreArchivo(mTipoArchivo.getClave().concat(pExtencion))
                         .ruta(mRutaFinal)
                         .build();
                 mArchivoEntity.setFechaAlta(new Date());
@@ -107,6 +113,57 @@ public class FileServerServiceImpl implements IFileServerService {
         }
     }
 
+    @Override
+    public List<FileEvidenceDTO> getByUserTypeFileAndLimit(Integer pIdUsuario, Integer pIdTipoArchivo, Integer pLimit) {
+        List<ArchivoEntity> mArchivoEntityList = this.iArchivoRepository.findByUserAndTipoArchivoWhitLimit(pIdUsuario, pIdTipoArchivo, pLimit);
+        return this.archivoListToDtoList(mArchivoEntityList);
+
+    }
+
+    @Override
+    public List<FileEvidenceDTO> getByUser(UsuarioEntity pUsuarioEntity) {
+        var listaArchivos = this.iArchivoRepository.findByUser(pUsuarioEntity);
+        return this.archivoListToDtoList(listaArchivos);
+    }
+
+    private List<FileEvidenceDTO> archivoListToDtoList(List<ArchivoEntity> pArchivoEntity) {
+        List<FileEvidenceDTO> fileEvidenceDTOS = new ArrayList<>();
+        pArchivoEntity.forEach(a -> {
+            try {
+                String strDownload = this.iFileObjectService.getUrl(a);
+                fileEvidenceDTOS.add(FileEvidenceDTO.builder()
+                        .downloadUrl(strDownload)
+                        .id(a.getIdArchivo())
+                        .extencion(a.getExtencionArchivo())
+                        .nombre(a.getNombreArchivo())
+                        .tipoArchivo(a.getTipoArchivo())
+                        .idTipoArchivo(a.getIdTipoArchivo().getIdTipoArchivo())
+                        .mineType(a.getMineType())
+                        .path(a.getRuta())
+                        .build());
+            } catch (ServerException e) {
+                throw new RuntimeException(e);
+            } catch (InsufficientDataException e) {
+                throw new RuntimeException(e);
+            } catch (ErrorResponseException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            } catch (InvalidKeyException e) {
+                throw new RuntimeException(e);
+            } catch (InvalidResponseException e) {
+                throw new RuntimeException(e);
+            } catch (XmlParserException e) {
+                throw new RuntimeException(e);
+            } catch (InternalException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return fileEvidenceDTOS;
+    }
 
     private String obtenerBucket(Integer pIdBucket) {
         return switch (pIdBucket) {
